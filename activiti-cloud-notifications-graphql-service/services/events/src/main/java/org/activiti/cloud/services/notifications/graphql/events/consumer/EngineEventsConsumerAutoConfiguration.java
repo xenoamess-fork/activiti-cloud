@@ -31,10 +31,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.PropertySources;
+import org.springframework.context.annotation.*;
 import org.springframework.messaging.Message;
 
 import reactor.core.publisher.Flux;
@@ -47,13 +44,13 @@ import reactor.core.publisher.TopicProcessor;
  *
  */
 @Configuration
-@EnableBinding(EngineEventsConsumerChannels.class)
 @EnableConfigurationProperties(EngineEventsConsumerProperties.class)
 @ConditionalOnProperty(name = "spring.activiti.cloud.services.notifications.graphql.events.enabled", matchIfMissing = true)
 @PropertySources({
     @PropertySource(value = "classpath:META-INF/graphql-events.properties"), 
     @PropertySource(value = "classpath:graphql-events.properties", ignoreResourceNotFound = true)
 })
+@Import(EngineEventsConsumerMessageHandler.class)
 public class EngineEventsConsumerAutoConfiguration {
 
     @Configuration
@@ -78,13 +75,6 @@ public class EngineEventsConsumerAutoConfiguration {
             return new EngineEventsTransformer(Arrays.asList(properties.getProcessEngineEventAttributeKeys()
                                                                        .split(",")),
                                                properties.getProcessEngineEventTypeKey());
-        }
-
-        @Bean
-        @ConditionalOnMissingBean
-        public EngineEventsConsumerMessageHandler engineEventsMessageHandler(Transformer engineEventsTransformer,
-                                                                             FluxSink<Message<List<EngineEvent>>> engineEventsSink) {
-            return new EngineEventsConsumerMessageHandler(engineEventsTransformer, engineEventsSink);
         }
 
     }

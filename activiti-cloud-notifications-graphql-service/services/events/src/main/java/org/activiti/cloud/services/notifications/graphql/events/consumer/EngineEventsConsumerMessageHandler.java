@@ -16,20 +16,22 @@
 
 package org.activiti.cloud.services.notifications.graphql.events.consumer;
 
-import java.util.List;
-import java.util.Map;
-
 import org.activiti.cloud.services.notifications.graphql.events.model.EngineEvent;
 import org.activiti.cloud.services.notifications.graphql.events.transformer.Transformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.stream.annotation.Input;
-import org.springframework.cloud.stream.annotation.StreamListener;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+
+@Configuration
 public class EngineEventsConsumerMessageHandler {
 
     private static Logger logger = LoggerFactory.getLogger(EngineEventsConsumerMessageHandler.class);
@@ -38,13 +40,43 @@ public class EngineEventsConsumerMessageHandler {
     private final Transformer transformer;
 
     public EngineEventsConsumerMessageHandler(Transformer transformer,
-                                      FluxSink<Message<List<EngineEvent>>> engineEventsSink)
+                                              FluxSink<Message<List<EngineEvent>>> engineEventsSink)
     {
         this.processorSink = engineEventsSink;
         this.transformer = transformer;
     }
 
-    @StreamListener
+    @Bean
+    public Consumer<Flux<Message<List<Map<String, Object>>>>> graphQLEngineEventsConsumerSource() {
+        return item -> item.doOnNext( message -> {
+            System.out.println("Message size: " + message.getPayload().size());
+        }).subscribe();
+    }
+
+
+    /*@Bean("graphQLEngineEventsConsumerSource")
+    public Consumer<Flux<Message<List<Map<String,Object>>>>> graphQLEngineEventsConsumerSource() {
+
+        return input -> {
+            input.flatMapSequential(message -> {
+                List<Map<String, Object>> events = message.getPayload();
+                String routingKey = (String) message.getHeaders().get("routingKey");
+
+                logger.info("Recieved source message with routingKey: {}", routingKey);
+
+                return Flux.fromIterable(transformer.transform(events))
+                               .collectList()
+                               .map(list -> MessageBuilder.<List<EngineEvent>> createMessage(list,
+                                                                                             message.getHeaders()));
+            })
+                    .doOnNext(processorSink::next)
+                    .doOnError(error -> logger.error("Error handling message ", error))
+                    .retry()
+                    .subscribe();
+        };
+    }*/
+
+    /*@StreamListener
     public void receive(@Input(EngineEventsConsumerChannels.SOURCE)
                             Flux<Message<List<Map<String,Object>>>> input) {
 
@@ -64,5 +96,5 @@ public class EngineEventsConsumerMessageHandler {
         .doOnError(error -> logger.error("Error handling message ", error))
         .retry()
         .subscribe();
-    }
+    }*/
 }
