@@ -19,13 +19,10 @@ import static org.activiti.cloud.services.common.util.HttpUtils.multipartToFileC
 import static org.activiti.cloud.services.common.util.HttpUtils.writeFileToResponse;
 import static org.activiti.cloud.services.modeling.rest.api.ProjectRestApi.EXPORT_AS_ATTACHMENT_PARAM_NAME;
 import static org.activiti.cloud.services.modeling.rest.api.ProjectRestApi.UPLOAD_FILE_PARAM_NAME;
-
 import java.io.IOException;
 import java.util.Optional;
-
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-
 import io.swagger.annotations.ApiParam;
 import org.activiti.cloud.alfresco.data.domain.AlfrescoPagedModelAssembler;
 import org.activiti.cloud.modeling.api.Model;
@@ -40,8 +37,8 @@ import org.activiti.cloud.services.modeling.service.ModelTypeService;
 import org.activiti.cloud.services.modeling.service.api.ModelService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -216,7 +213,18 @@ public class ModelController implements ModelRestApi {
             @RequestParam(UPLOAD_FILE_PARAM_NAME) MultipartFile file) throws IOException {
 
         modelService.validateModelExtensions(findModelById(modelId),
-                                          multipartToFileContent(file));
+                multipartToFileContent(file));
+    }
+
+    public PagedModel<EntityModel<Model>> getGlobalModels(
+            @ApiParam(GET_MODELS_TYPE_PARAM_DESCR)
+            @RequestParam(name = MODEL_TYPE_PARAM_NAME,
+                    required = true,
+                    defaultValue = "true") String type, Pageable pageable) {
+        return pagedCollectionModelAssembler.toModel(
+                pageable,
+                modelService.getGlobalModels(findModelType(type), pageable),
+                representationModelAssembler);
     }
 
     public Model findModelById(String modelId) {

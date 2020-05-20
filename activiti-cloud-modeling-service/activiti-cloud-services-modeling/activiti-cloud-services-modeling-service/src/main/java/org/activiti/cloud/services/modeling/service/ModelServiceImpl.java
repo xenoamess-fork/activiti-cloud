@@ -26,16 +26,17 @@ import static org.activiti.cloud.services.common.util.ContentTypeUtils.setExtens
 import static org.activiti.cloud.services.common.util.ContentTypeUtils.toJsonFilename;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
-
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.transaction.Transactional;
 import javax.xml.stream.XMLStreamException;
-
 import org.activiti.bpmn.exceptions.XMLException;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.Process;
@@ -45,7 +46,6 @@ import org.activiti.cloud.modeling.api.ModelContent;
 import org.activiti.cloud.modeling.api.ModelType;
 import org.activiti.cloud.modeling.api.Project;
 import org.activiti.cloud.modeling.api.ValidationContext;
-import org.activiti.cloud.modeling.api.process.Extensions;
 import org.activiti.cloud.modeling.converter.JsonConverter;
 import org.activiti.cloud.modeling.core.error.ImportModelException;
 import org.activiti.cloud.modeling.core.error.UnknownModelTypeException;
@@ -451,18 +451,23 @@ public class ModelServiceImpl implements ModelService{
 
     @Override
     public void validateModelExtensions(Model model,
-                                        FileContent fileContent,
-                                        ValidationContext validationContext) {
+            FileContent fileContent,
+            ValidationContext validationContext) {
         validateModelExtensions(model.getType(),
-                                fileContent.getFileContent(),
-                                validationContext);
+                fileContent.getFileContent(),
+                validationContext);
+    }
+
+    @Override public Page<Model> getGlobalModels(final ModelType modelType, final Pageable pageable) {
+        throw new UnsupportedOperationException();
     }
 
     private void validateModelExtensions(String modelType,
-                                         byte[] modelContent,
-                                         ValidationContext validationContext) {
-        emptyIfNull(modelExtensionsService.findExtensionsValidators(modelType)).stream().forEach(modelValidator -> modelValidator.validateModelExtensions(modelContent,
-                                                                                                                                                          validationContext));
+            byte[] modelContent,
+            ValidationContext validationContext) {
+        emptyIfNull(modelExtensionsService.findExtensionsValidators(modelType)).stream()
+                .forEach(modelValidator -> modelValidator.validateModelExtensions(modelContent,
+                        validationContext));
     }
 
     private ModelType findModelType(Model model) {

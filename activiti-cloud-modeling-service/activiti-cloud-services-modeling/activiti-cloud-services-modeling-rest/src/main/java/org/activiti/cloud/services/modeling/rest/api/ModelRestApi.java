@@ -15,17 +15,26 @@
  */
 package org.activiti.cloud.services.modeling.rest.api;
 
+import static org.activiti.cloud.services.common.util.ContentTypeUtils.CONTENT_TYPE_SVG;
+import static org.activiti.cloud.services.modeling.rest.api.ModelRestApi.MODELS;
+import static org.activiti.cloud.services.modeling.rest.controller.ProjectController.ATTACHMENT_API_PARAM_DESCR;
+import static org.activiti.cloud.services.modeling.rest.controller.ProjectController.EXPORT_AS_ATTACHMENT_PARAM_NAME;
+import static org.activiti.cloud.services.modeling.rest.controller.ProjectController.UPLOAD_FILE_PARAM_NAME;
+import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.activiti.cloud.modeling.api.Model;
 import org.activiti.cloud.modeling.api.ModelType;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,17 +47,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import static org.activiti.cloud.services.common.util.ContentTypeUtils.CONTENT_TYPE_SVG;
-import static org.activiti.cloud.services.modeling.rest.api.ModelRestApi.MODELS;
-import static org.activiti.cloud.services.modeling.rest.controller.ProjectController.ATTACHMENT_API_PARAM_DESCR;
-import static org.activiti.cloud.services.modeling.rest.controller.ProjectController.EXPORT_AS_ATTACHMENT_PARAM_NAME;
-import static org.activiti.cloud.services.modeling.rest.controller.ProjectController.UPLOAD_FILE_PARAM_NAME;
-import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 /**
  * Controller for process resources.
@@ -240,4 +238,16 @@ public interface ModelRestApi {
             @PathVariable String modelId,
             @ApiParam(VALIDATE_EXTENSIONS_FILE_PARAM_DESCR)
             @RequestParam(UPLOAD_FILE_PARAM_NAME) MultipartFile file) throws IOException;
+
+    @ApiOperation(
+            tags = MODELS,
+            value = "Get all the global models",
+            notes = "Get all the global models of a type given by required parameter")
+    @GetMapping(path = "/models")
+    PagedModel<EntityModel<Model>> getGlobalModels(
+            @ApiParam(GET_MODELS_TYPE_PARAM_DESCR)
+            @RequestParam(name = MODEL_TYPE_PARAM_NAME,
+                    required = true,
+                    defaultValue = "true") String type, Pageable pageable) throws IOException;
+
 }

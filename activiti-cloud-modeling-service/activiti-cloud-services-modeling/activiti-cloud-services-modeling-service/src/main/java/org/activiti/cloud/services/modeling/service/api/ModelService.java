@@ -18,7 +18,6 @@ package org.activiti.cloud.services.modeling.service.api;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import org.activiti.bpmn.model.Process;
 import org.activiti.bpmn.model.Task;
 import org.activiti.cloud.modeling.api.Model;
@@ -114,14 +113,16 @@ public interface ModelService {
                               ValidationContext validationContext);
 
     void validateModelExtensions(Model model,
-                                 ValidationContext validationContext);
+            ValidationContext validationContext);
 
     void validateModelExtensions(Model model,
-                                 FileContent fileContent);
+            FileContent fileContent);
 
     void validateModelExtensions(Model model,
-                                 FileContent fileContent,
-                                 ValidationContext validationContext);
+            FileContent fileContent,
+            ValidationContext validationContext);
+
+    public Page<Model> getGlobalModels(ModelType modelType, Pageable pageable);
 
     public static class ProjectAccessControl {
 
