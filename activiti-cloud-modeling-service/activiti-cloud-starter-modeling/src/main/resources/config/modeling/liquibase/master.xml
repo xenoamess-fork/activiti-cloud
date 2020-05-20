@@ -15,7 +15,6 @@
              stripComments="true"/>
   </changeSet>
 
-
   <changeSet author="aae-modeling"
              id="initial-schema" dbms="postgresql">
     <preConditions onFail="CONTINUE">
@@ -34,6 +33,12 @@
              path="changelog/01.pg.update.sql"
              relativeToChangelogFile="true"
              splitStatements="true"
-             stripComments="true"/>         
+             stripComments="true"/>
+    <sqlFile dbms="postgresql"
+             encoding="utf8"
+             path="changelog/02.pg.update.sql"
+             relativeToChangelogFile="true"
+             splitStatements="true"
+             stripComments="true"/>
   </changeSet>
 </databaseChangeLog>

@@ -47,7 +47,8 @@ create table project
 create table project_models
 (
     project_id varchar(255) not null,
-    models_id  varchar(255) not null
+    models_id  varchar(255) not null,
+    primary key (project_id, models_id)
 );
 alter table model
     add constraint UNQ_PROJECT_ID_TYPE_NAME unique (project_id, type, name);
@@ -55,8 +56,6 @@ alter table model_versions
     add constraint UK_ei9juhk09r20q4bmvgpjrcrs3 unique (versions_version, versions_versioned_entity_id);
 alter table project
     add constraint UK_3k75vvu7mevyvvb5may5lj8k7 unique (name);
-alter table project_models
-    add constraint UK_cphei6yijnpnhdym2dckgxnka unique (models_id);
 alter table model
     add constraint FKqjpgrrtoo1bryor3iymmb03pu foreign key (latest_version_version, latest_version_versioned_entity_id) references model_version;
 alter table model
