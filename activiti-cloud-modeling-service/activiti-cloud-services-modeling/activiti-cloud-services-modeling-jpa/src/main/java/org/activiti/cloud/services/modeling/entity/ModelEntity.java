@@ -15,32 +15,35 @@
  */
 package org.activiti.cloud.services.modeling.entity;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.activiti.cloud.modeling.api.Model;
-import org.activiti.cloud.modeling.api.process.Extensions;
 import org.activiti.cloud.services.modeling.jpa.audit.AuditableEntity;
 import org.activiti.cloud.services.modeling.jpa.version.VersionedEntity;
 import org.hibernate.annotations.GenericGenerator;
-
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 /**
  * Model model entity
@@ -49,12 +52,12 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(NON_NULL)
 @Table(name = "Model",
-        uniqueConstraints = @UniqueConstraint(
-                name = "UNQ_PROJECT_ID_TYPE_NAME",
-                columnNames = {"project_id", "type", "name"})
+    uniqueConstraints = @UniqueConstraint(
+        name = "UNQ_PROJECT_ID_TYPE_NAME",
+        columnNames = {"project_id", "type", "name"})
 )
 public class ModelEntity extends AuditableEntity<String> implements Model<ProjectEntity, String>,
-                                                                    VersionedEntity<ModelVersionEntity> {
+    VersionedEntity<ModelVersionEntity> {
 
     @Id
     @GeneratedValue(generator = "system-uuid")
@@ -68,6 +71,15 @@ public class ModelEntity extends AuditableEntity<String> implements Model<Projec
     @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL)
     private List<ModelVersionEntity> versions = new ArrayList<>();
+
+    @JsonIgnore
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @JoinTable(
+        name = "project_models",
+        joinColumns = {@JoinColumn(name = "models_is")},
+        inverseJoinColumns = {@JoinColumn(name = "project_id")}
+    )
+    private Set<ProjectEntity> projects = new HashSet<>();
 
     @OneToOne(cascade = CascadeType.ALL)
     @JsonIgnore
@@ -83,7 +95,7 @@ public class ModelEntity extends AuditableEntity<String> implements Model<Projec
     }
 
     public ModelEntity(String name,
-                       String type) {
+        String type) {
         this.name = name;
         this.type = type;
     }
@@ -119,21 +131,27 @@ public class ModelEntity extends AuditableEntity<String> implements Model<Projec
     }
 
     @Override
-    public ProjectEntity getProject() {
-        return project;
+    public Set<ProjectEntity> getProjects() {
+        if (isGlobalModel()) {
+            return projects;
+        } else {
+            return Set.of(project);
+        }
     }
 
     @Override
-    public void setProject(ProjectEntity project) {
-        this.project = project;
+    public void setProjects(Set<ProjectEntity> projects) {
+        if (isGlobalModel()) {
+            this.projects = projects;
+        }
     }
 
     @Transient
     @JsonProperty("projectId")
     public String projectId() {
         return Optional.ofNullable(project)
-                .map(ProjectEntity::getId)
-                .orElse(null);
+            .map(ProjectEntity::getId)
+            .orElse(null);
     }
 
     @Transient
@@ -165,12 +183,12 @@ public class ModelEntity extends AuditableEntity<String> implements Model<Projec
     }
 
     @Override
-    public Map<String,Object> getExtensions() {
+    public Map<String, Object> getExtensions() {
         return latestVersion.getExtensions();
     }
 
     @Override
-    public void setExtensions(Map<String,Object> extensions) {
+    public void setExtensions(Map<String, Object> extensions) {
         latestVersion.setExtensions(extensions);
     }
 
@@ -184,11 +202,39 @@ public class ModelEntity extends AuditableEntity<String> implements Model<Projec
         this.template = template;
     }
 
+    @Transient
+    @Override
+    public boolean isGlobalModel() {
+        return project != null;
+    }
+
+    @Override
+    public void addProject(ProjectEntity project) {
+        projects.add(project);
+    }
+
+    @Override
+    public void deleteProject(ProjectEntity project) {
+        projects.remove(project);
+    }
+
+    @Override
+    public void convertToGlobal() {
+        project = null;
+    }
+
+    @Override
+    public void convertToLocalToProject(ProjectEntity project) {
+        projects = null;
+        this.project = project;
+    }
+
     @Override
     public List<ModelVersionEntity> getVersions() {
         return versions;
     }
 
+    @Override
     public void setVersions(List<ModelVersionEntity> versions) {
         this.versions = versions;
     }

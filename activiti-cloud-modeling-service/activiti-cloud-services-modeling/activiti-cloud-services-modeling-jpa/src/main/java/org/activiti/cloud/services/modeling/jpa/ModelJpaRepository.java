@@ -20,6 +20,7 @@ import org.activiti.cloud.services.modeling.entity.ModelEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 /**
@@ -31,6 +32,8 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
     exported = false)
 public interface ModelJpaRepository extends JpaRepository<ModelEntity, String> {
 
+    @Query("(SELECT m FROM ModelsEntity m WHERE m.project.id = :projectId AND m.type = :modelTypeFilter) UNION "
+        + "(SELECT m FROM ModelsEntity m join m.projects p WHERE p.id = :projectId AND m.type = :modelTypeFilter)")
     Page<ModelEntity> findAllByProjectIdAndTypeEquals(String projectId,
         String modelTypeFilter,
         Pageable pageable);

@@ -15,16 +15,18 @@
  */
 package org.activiti.cloud.services.modeling.entity;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -32,8 +34,6 @@ import org.activiti.cloud.modeling.api.ModelValidationErrorProducer;
 import org.activiti.cloud.modeling.api.Project;
 import org.activiti.cloud.services.modeling.jpa.audit.AuditableEntity;
 import org.hibernate.annotations.GenericGenerator;
-
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 /**
  * Project model entity
@@ -60,6 +60,10 @@ public class ProjectEntity extends AuditableEntity<String> implements Project<St
 
     private String version;
 
+    @JsonIgnore
+    @ManyToMany(mappedBy = "projects", cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
+    private Set<ModelEntity> globalModels = new HashSet<>();
+
     public ProjectEntity() {  // for JPA
     }
 
@@ -83,6 +87,14 @@ public class ProjectEntity extends AuditableEntity<String> implements Project<St
 
     public void setModels(List<ModelEntity> models) {
         this.models = models;
+    }
+
+    public Set<ModelEntity> getGlobalModels() {
+        return globalModels;
+    }
+
+    public void setGlobalModels(Set<ModelEntity> globalModels) {
+        this.globalModels = globalModels;
     }
 
     @Override

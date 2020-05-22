@@ -16,7 +16,7 @@
 package org.activiti.cloud.modeling.api;
 
 import java.util.Map;
-
+import java.util.Set;
 import org.activiti.cloud.services.auditable.Auditable;
 
 /**
@@ -36,9 +36,9 @@ public interface Model<A extends Project, U> extends Auditable<U> {
 
     void setType(String type);
 
-    A getProject();
+    Set<A> getProjects();
 
-    void setProject(A project);
+    void setProjects(Set<A> project);
 
     String getVersion();
 
@@ -57,4 +57,14 @@ public interface Model<A extends Project, U> extends Auditable<U> {
     String getTemplate();
 
     void setTemplate(String template);
+
+    boolean isGlobalModel();
+
+    void addProject(A project);
+
+    void deleteProject(A project);
+
+    void convertToGlobal();
+
+    void convertToLocalToProject(A project);
 }
